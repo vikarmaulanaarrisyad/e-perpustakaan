@@ -4,6 +4,7 @@ namespace App\DataTables;
 
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Gate;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
@@ -31,9 +32,16 @@ class RoleDataTable extends DataTable
                 return $row->updated_at->format('d-m-Y');
             })
             ->addColumn('action', function ($row) {
-                return '';
+                if (Gate::allows('update role')) {
+                    $action = '<button type="button" class="btn btn-sm bg-primary"><i class="fas fa-pencil-alt"></i></button>
+                    ';
+                }
+
+                if (Gate::allows('delete role')) {
+                    $action .= ' <button type="button" class="btn btn-sm bg-danger"><i class="fas fa-trash-alt"></i></button>';
+                }
+                return $action;
             });
-        // ->setRowId('id');
     }
 
     /**
@@ -55,6 +63,7 @@ class RoleDataTable extends DataTable
     public function html(): HtmlBuilder
     {
         return $this->builder()
+            ->parameters(['searchDelay' => 1000])
             ->setTableId('role-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
@@ -76,7 +85,7 @@ class RoleDataTable extends DataTable
                 ->width(5)
                 ->addClass('text-center'),
             Column::make('name')
-                ->width(90),
+                ->width(10),
             Column::make('created_at')
                 ->width(5),
             Column::make('updated_at')
@@ -84,8 +93,7 @@ class RoleDataTable extends DataTable
             Column::computed('action')
                 ->exportable(false)
                 ->printable(false)
-                ->width(30)
-                ->addClass('text-center'),
+                ->width(50),
         ];
     }
 
